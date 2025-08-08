@@ -182,6 +182,13 @@ function createMenu() {
             mainWindow.webContents.send('toggle-sync-scroll');
           }
         },
+        {
+          label: 'Toggle Show Lines',
+          accelerator: 'CmdOrCtrl+L',
+          click: () => {
+            mainWindow.webContents.send('toggle-show-lines');
+          }
+        },
         { type: 'separator' },
         {
           label: 'Reload',
