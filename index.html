@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-theme">
+    <style id="theme-styles">
+        /* Base styles - will be overridden by themes */
+        :root {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #2d2d30;
+            --border-color: #3e3e42;
+            --text-primary: #d4d4d4;
+            --text-secondary: #cccccc;
+            --text-tertiary: #858585;
+            --accent-primary: #007acc;
+            --accent-hover: #1177bb;
+            --accent-active: #0e639c;
+            --heading-color: #569cd6;
+            --link-color: #3794ff;
+            --code-bg: #2d2d30;
+            --code-text: #ce9178;
+            --scrollbar-bg: #1e1e1e;
+            --scrollbar-thumb: #424242;
+            --scrollbar-thumb-hover: #4f4f4f;
+            --scrollbar-thumb-active: #5a5a5a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* Custom Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 14px;
+            height: 14px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border: 3px solid var(--scrollbar-bg);
+            border-radius: 7px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--scrollbar-thumb-hover);
+        }
+
+        ::-webkit-scrollbar-thumb:active {
+            background: var(--scrollbar-thumb-active);
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: var(--scrollbar-bg);
+        }
+
+        .toolbar {
+            background: var(--bg-tertiary);
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .toolbar-separator {
+            width: 1px;
+            height: 24px;
+            background: var(--border-color);
+            margin: 0 5px;
+        }
+
+        .toolbar button {
+            padding: 6px 12px;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .toolbar button:hover {
+            background: var(--accent-hover);
+        }
+
+        .toolbar button.active {
+            background: var(--accent-active);
+        }
+
+        .toolbar select {
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .toolbar select:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .toolbar label {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .toolbar input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .editor-panel, .preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .editor-panel {
+            border-right: 1px solid var(--border-color);
+        }
+
+        .panel-header {
+            background: var(--bg-secondary);
+            padding: 8px 15px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        #editor {
+            flex: 1;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: none;
+            outline: none;
+            resize: none;
+            overflow-y: auto;
+        }
+
+        #preview {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: var(--bg-primary);
+        }
+
+        /* Markdown Preview Styles */
+        #preview {
+            color: var(--text-primary);
+        }
+
+        #preview h1, #preview h2, #preview h3, #preview h4, #preview h5, #preview h6 {
+            color: var(--heading-color);
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        #preview h1 { font-size: 2em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; }
+        #preview h2 { font-size: 1.5em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; }
+        #preview h3 { font-size: 1.25em; }
+        #preview h4 { font-size: 1em; }
+        #preview h5 { font-size: 0.875em; }
+        #preview h6 { font-size: 0.85em; }
+
+        #preview p {
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        #preview a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+
+        #preview a:hover {
+            text-decoration: underline;
+        }
+
+        #preview code {
+            background: var(--code-bg);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: var(--code-text);
+        }
+
+        #preview pre {
+            background: var(--code-bg);
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
+
+        #preview pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-primary);
+        }
+
+        #preview blockquote {
+            border-left: 4px solid var(--border-color);
+            padding-left: 16px;
+            color: var(--text-tertiary);
+            margin-bottom: 16px;
+        }
+
+        #preview ul, #preview ol {
+            margin-bottom: 16px;
+            padding-left: 2em;
+        }
+
+        #preview li {
+            margin-bottom: 4px;
+        }
+
+        #preview table {
+            border-collapse: collapse;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        #preview table th,
+        #preview table td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        #preview table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+        }
+
+        #preview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        #preview hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 24px 0;
+        }
+
+        .status-bar {
+            background: var(--accent-primary);
+            padding: 5px 15px;
+            font-size: 12px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Custom Theme Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            color: var(--text-primary);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            color: var(--accent-primary);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .color-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .color-input-group label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .color-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-input-wrapper input[type="color"] {
+            width: 50px;
+            height: 35px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            background: none;
+        }
+
+        .color-input-wrapper input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .modal-actions button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        /* Syntax highlighting theme adjustments */
+        .hljs {
+            background: var(--code-bg) !important;
+            color: var(--text-primary) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div class="toolbar-group">
+            <button id="toggleEditor" class="active">Editor</button>
+            <button id="togglePreview" class="active">Preview</button>
+        </div>
+        
+        <div class="toolbar-separator"></div>
+        
+        <div class="toolbar-group">
+            <button id="saveBtn">Save (Ctrl+S)</button>
+            <button id="openBtn">Open (Ctrl+O)</button>
+        </div>
+        
+        <div class="toolbar-separator"></div>
+        
+        <div class="toolbar-group">
+            <select id="themeSelect">
+                <option value="dark">Dark Theme</option>
+                <option value="light">Light Theme</option>
+                <option value="monokai">Monokai</option>
+                <option value="dracula">Dracula</option>
+                <option value="nord">Nord</option>
+                <option value="solarized-dark">Solarized Dark</option>
+                <option value="solarized-light">Solarized Light</option>
+                <option value="github">GitHub</option>
+                <option value="custom">Custom Theme...</option>
+            </select>
+            
+            <label>
+                <input type="checkbox" id="syncScroll" checked>
+                Sync Scroll
+            </label>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="editor-panel" id="editorPanel">
+            <div class="panel-header">Editor</div>
+            <textarea id="editor" placeholder="# Start typing your markdown here...
+
+## Welcome to Markdown Editor
+
+Start typing to see a live preview on the right.
+
+### Features
+- 🎨 Multiple themes (Dark, Light, Monokai, Dracula, etc.)
+- 🎯 Custom theme creator
+- 🔄 Synchronized scrolling
+- 📝 Live preview
+- 💾 File association support
+
+```javascript
+// Code blocks are supported
+console.log('Hello, Markdown!');
+```"></textarea>
+        </div>
+
+        <div class="preview-panel" id="previewPanel">
+            <div class="panel-header">Preview</div>
+            <div id="preview"></div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <span id="fileName">Untitled.md</span>
+        <span id="wordCount">0 words</span>
+    </div>
+
+    <!-- Custom Theme Modal -->
+    <div id="themeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Custom Theme</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div class="color-grid">
+                <div class="color-input-group">
+                    <label>Primary Background</label>
+                    <div class="color-input-wrapper">
+                        <input type="color" id="color-bg-primary" value="#1e1e1e">
+                        <input type="text" id="text-bg-primary" value="#1e1e1e">
+                    </div>
+                </div>
+                
+                <div class="color-input-group">
+                    <label>Secondary Background</label>
+                    <div class="color-input-wrapper">
+                        <input type="color" id="color-bg-secondary" value="#252526">
+                        <input type="text" id="text-bg-secondary" value="#252526">
+                    </div>
+                </div>
+                
+                <div class="color-input-group">
+                    <label>Tertiary Background</label>
+                    <div class="color-input-wrapper">
+                        <input type="color" id="color-bg-tertiary" value="#2d2d30">
+                        <input type="text" id="text-bg-tertiary" value="#2d2d30">
+                    </div>
+                </div>
+                
+                <div class="color-input-group">
+                    <label>Border Color</label>
+                    <div class="color-input-wrapper">
+                        <input type="color" id="color-border-color" value="#3e3e42">
+                        <input type="text" id="text-border-color" value="#3e3e42">
+                    </div>
+                </div>
+                
+                <div class="color-input-group">
+                    <label>Primary Text</label>
+                    <div class="color-input-wrapper">
+                        <input type="color" id="color-text-primary" value="#d4d4d4">
+                        <input type="text" id="text-text-primary" value="#d4d4d4">
+                    </div>
+                </div>
+                
+                <div class="color-input-group">
+                    <label>Accent Color</label>
+                    <div class="color-input-wrapper">
+                        <input type="color" id="color-accent-primary" value="#007acc">
+                        <input type="text" id="text-accent-primary" value="#007acc">
+                    </div>
+                </div>
+                
+                <div class="color-input-group">
+                    <label>Heading Color</label>
+                    <div class="color-input-wrapper">
+                        <input type="color" id="color-heading-color" value="#569cd6">
+                        <input type="text" id="text-heading-color" value="#569cd6">
+                    </div>
+                </div>
+                
+                <div class="color-input-group">
+                    <label>Link Color</label>
+                    <div class="color-input-wrapper">
+                        <input type="color" id="color-link-color" value="#3794ff">
+                        <input type="text" id="text-link-color" value="#3794ff">
+                    </div>
+                </div>
+                
+                <div class="color-input-group">
+                    <label>Code Background</label>
+                    <div class="color-input-wrapper">
+                        <input type="color" id="color-code-bg" value="#2d2d30">
+                        <input type="text" id="text-code-bg" value="#2d2d30">
+                    </div>
+                </div>
+                
+                <div class="color-input-group">
+                    <label>Code Text</label>
+                    <div class="color-input-wrapper">
+                        <input type="color" id="color-code-text" value="#ce9178">
+                        <input type="text" id="text-code-text" value="#ce9178">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn-secondary" id="resetTheme">Reset to Default</button>
+                <button class="btn-primary" id="applyTheme">Apply Theme</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        const { ipcRenderer } = require('electron');
+        const path = require('path');
+        const fs = require('fs');
+        
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        const fileName = document.getElementById('fileName');
+        const wordCount = document.getElementById('wordCount');
+        const toggleEditorBtn = document.getElementById('toggleEditor');
+        const togglePreviewBtn = document.getElementById('togglePreview');
+        const editorPanel = document.getElementById('editorPanel');
+        const previewPanel = document.getElementById('previewPanel');
+        const saveBtn = document.getElementById('saveBtn');
+        const openBtn = document.getElementById('openBtn');
+        const themeSelect = document.getElementById('themeSelect');
+        const syncScrollCheckbox = document.getElementById('syncScroll');
+        const themeModal = document.getElementById('themeModal');
+        const closeModalBtn = document.querySelector('.close-modal');
+        const applyThemeBtn = document.getElementById('applyTheme');
+        const resetThemeBtn = document.getElementById('resetTheme');
+
+        let currentFilePath = null;
+        let hasUnsavedChanges = false;
+        let isUpdatingScroll = false;
+
+        // Theme definitions
+        const themes = {
+            dark: {
+                '--bg-primary': '#1e1e1e',
+                '--bg-secondary': '#252526',
+                '--bg-tertiary': '#2d2d30',
+                '--border-color': '#3e3e42',
+                '--text-primary': '#d4d4d4',
+                '--text-secondary': '#cccccc',
+                '--text-tertiary': '#858585',
+                '--accent-primary': '#007acc',
+                '--accent-hover': '#1177bb',
+                '--accent-active': '#0e639c',
+                '--heading-color': '#569cd6',
+                '--link-color': '#3794ff',
+                '--code-bg': '#2d2d30',
+                '--code-text': '#ce9178',
+                '--scrollbar-bg': '#1e1e1e',
+                '--scrollbar-thumb': '#424242',
+                '--scrollbar-thumb-hover': '#4f4f4f',
+                '--scrollbar-thumb-active': '#5a5a5a',
+                'hljs-theme': 'github-dark'
+            },
+            light: {
+                '--bg-primary': '#ffffff',
+                '--bg-secondary': '#f3f3f3',
+                '--bg-tertiary': '#e8e8e8',
+                '--border-color': '#d4d4d4',
+                '--text-primary': '#333333',
+                '--text-secondary': '#555555',
+                '--text-tertiary': '#777777',
+                '--accent-primary': '#0066cc',
+                '--accent-hover': '#0052a3',
+                '--accent-active': '#004080',
+                '--heading-color': '#0066cc',
+                '--link-color': '#0066cc',
+                '--code-bg': '#f5f5f5',
+                '--code-text': '#d73a49',
+                '--scrollbar-bg': '#ffffff',
+                '--scrollbar-thumb': '#c1c1c1',
+                '--scrollbar-thumb-hover': '#a8a8a8',
+                '--scrollbar-thumb-active': '#888888',
+                'hljs-theme': 'github'
+            },
+            monokai: {
+                '--bg-primary': '#272822',
+                '--bg-secondary': '#3e3d32',
+                '--bg-tertiary': '#45443c',
+                '--border-color': '#75715e',
+                '--text-primary': '#f8f8f2',
+                '--text-secondary': '#f8f8f2',
+                '--text-tertiary': '#75715e',
+                '--accent-primary': '#66d9ef',
+                '--accent-hover': '#52c7dd',
+                '--accent-active': '#3eb5cb',
+                '--heading-color': '#a6e22e',
+                '--link-color': '#66d9ef',
+                '--code-bg': '#3e3d32',
+                '--code-text': '#e6db74',
+                '--scrollbar-bg': '#272822',
+                '--scrollbar-thumb': '#75715e',
+                '--scrollbar-thumb-hover': '#908c79',
+                '--scrollbar-thumb-active': '#a6a296',
+                'hljs-theme': 'monokai'
+            },
+            dracula: {
+                '--bg-primary': '#282a36',
+                '--bg-secondary': '#44475a',
+                '--bg-tertiary': '#363849',
+                '--border-color': '#6272a4',
+                '--text-primary': '#f8f8f2',
+                '--text-secondary': '#f8f8f2',
+                '--text-tertiary': '#6272a4',
+                '--accent-primary': '#bd93f9',
+                '--accent-hover': '#aa7ce6',
+                '--accent-active': '#9765d3',
+                '--heading-color': '#50fa7b',
+                '--link-color': '#8be9fd',
+                '--code-bg': '#44475a',
+                '--code-text': '#f1fa8c',
+                '--scrollbar-bg': '#282a36',
+                '--scrollbar-thumb': '#44475a',
+                '--scrollbar-thumb-hover': '#6272a4',
+                '--scrollbar-thumb-active': '#7b8cc5',
+                'hljs-theme': 'dracula'
+            },
+            nord: {
+                '--bg-primary': '#2e3440',
+                '--bg-secondary': '#3b4252',
+                '--bg-tertiary': '#434c5e',
+                '--border-color': '#4c566a',
+                '--text-primary': '#eceff4',
+                '--text-secondary': '#e5e9f0',
+                '--text-tertiary': '#d8dee9',
+                '--accent-primary': '#88c0d0',
+                '--accent-hover': '#75adbf',
+                '--accent-active': '#629aae',
+                '--heading-color': '#8fbcbb',
+                '--link-color': '#81a1c1',
+                '--code-bg': '#3b4252',
+                '--code-text': '#d08770',
+                '--scrollbar-bg': '#2e3440',
+                '--scrollbar-thumb': '#4c566a',
+                '--scrollbar-thumb-hover': '#5e6779',
+                '--scrollbar-thumb-active': '#707888',
+                'hljs-theme': 'nord'
+            },
+            'solarized-dark': {
+                '--bg-primary': '#002b36',
+                '--bg-secondary': '#073642',
+                '--bg-tertiary': '#004052',
+                '--border-color': '#586e75',
+                '--text-primary': '#839496',
+                '--text-secondary': '#93a1a1',
+                '--text-tertiary': '#657b83',
+                '--accent-primary': '#268bd2',
+                '--accent-hover': '#1e6fa7',
+                '--accent-active': '#16537c',
+                '--heading-color': '#b58900',
+                '--link-color': '#268bd2',
+                '--code-bg': '#073642',
+                '--code-text': '#cb4b16',
+                '--scrollbar-bg': '#002b36',
+                '--scrollbar-thumb': '#586e75',
+                '--scrollbar-thumb-hover': '#657b83',
+                '--scrollbar-thumb-active': '#839496',
+                'hljs-theme': 'solarized-dark'
+            },
+            'solarized-light': {
+                '--bg-primary': '#fdf6e3',
+                '--bg-secondary': '#eee8d5',
+                '--bg-tertiary': '#e7e0cd',
+                '--border-color': '#93a1a1',
+                '--text-primary': '#657b83',
+                '--text-secondary': '#586e75',
+                '--text-tertiary': '#93a1a1',
+                '--accent-primary': '#268bd2',
+                '--accent-hover': '#1e6fa7',
+                '--accent-active': '#16537c',
+                '--heading-color': '#b58900',
+                '--link-color': '#268bd2',
+                '--code-bg': '#eee8d5',
+                '--code-text': '#cb4b16',
+                '--scrollbar-bg': '#fdf6e3',
+                '--scrollbar-thumb': '#93a1a1',
+                '--scrollbar-thumb-hover': '#839496',
+                '--scrollbar-thumb-active': '#657b83',
+                'hljs-theme': 'solarized-light'
+            },
+            github: {
+                '--bg-primary': '#ffffff',
+                '--bg-secondary': '#f6f8fa',
+                '--bg-tertiary': '#e1e4e8',
+                '--border-color': '#d1d5da',
+                '--text-primary': '#24292e',
+                '--text-secondary': '#586069',
+                '--text-tertiary': '#6a737d',
+                '--accent-primary': '#0366d6',
+                '--accent-hover': '#0256c7',
+                '--accent-active': '#0246b8',
+                '--heading-color': '#24292e',
+                '--link-color': '#0366d6',
+                '--code-bg': '#f6f8fa',
+                '--code-text': '#e36209',
+                '--scrollbar-bg': '#ffffff',
+                '--scrollbar-thumb': '#d1d5da',
+                '--scrollbar-thumb-hover': '#c1c5cb',
+                '--scrollbar-thumb-active': '#b1b5bb',
+                'hljs-theme': 'github'
+            }
+        };
+
+        // Load saved preferences
+        function loadPreferences() {
+            const prefsPath = path.join(require('os').homedir(), '.markdown-editor-prefs.json');
+            try {
+                if (fs.existsSync(prefsPath)) {
+                    const prefs = JSON.parse(fs.readFileSync(prefsPath, 'utf8'));
+                    if (prefs.theme) {
+                        themeSelect.value = prefs.theme;
+                        applyTheme(prefs.theme);
+                    }
+                    if (prefs.customTheme) {
+                        themes.custom = prefs.customTheme;
+                    }
+                    if (prefs.syncScroll !== undefined) {
+                        syncScrollCheckbox.checked = prefs.syncScroll;
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading preferences:', err);
+            }
+        }
+
+        // Save preferences
+        function savePreferences() {
+            const prefsPath = path.join(require('os').homedir(), '.markdown-editor-prefs.json');
+            const prefs = {
+                theme: themeSelect.value,
+                customTheme: themes.custom || null,
+                syncScroll: syncScrollCheckbox.checked
+            };
+            try {
+                fs.writeFileSync(prefsPath, JSON.stringify(prefs, null, 2));
+            } catch (err) {
+                console.error('Error saving preferences:', err);
+            }
+        }
+
+        // Apply theme
+        function applyTheme(themeName) {
+            const theme = themes[themeName] || themes.dark;
+            const root = document.documentElement;
+            
+            for (const [property, value] of Object.entries(theme)) {
+                if (property === 'hljs-theme') {
+                    // Update highlight.js theme
+                    const hljsLink = document.getElementById('hljs-theme');
+                    hljsLink.href = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/${value}.min.css`;
+                } else {
+                    root.style.setProperty(property, value);
+                }
+            }
+            
+            // Re-render preview to apply new code highlighting
+            updatePreview();
+        }
+
+        // Configure marked
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true,
+            gfm: true
+        });
+
+        // Update preview
+        function updatePreview() {
+            const markdown = editor.value;
+            preview.innerHTML = marked.parse(markdown);
+            updateWordCount();
+        }
+
+        // Update word count
+        function updateWordCount() {
+            const text = editor.value;
+            const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+            wordCount.textContent = `${words} words`;
+        }
+
+        // Mark file as modified
+        function markAsModified() {
+            if (!hasUnsavedChanges) {
+                hasUnsavedChanges = true;
+                updateTitle();
+            }
+        }
+
+        // Update window title
+        function updateTitle() {
+            const baseName = currentFilePath ? path.basename(currentFilePath) : 'Untitled.md';
+            fileName.textContent = hasUnsavedChanges ? `${baseName} •` : baseName;
+        }
+
+        // Synchronized scrolling
+        function syncScroll(source, target) {
+            if (!syncScrollCheckbox.checked || isUpdatingScroll) return;
+            
+            isUpdatingScroll = true;
+            const scrollPercentage = source.scrollTop / (source.scrollHeight - source.clientHeight);
+            target.scrollTop = scrollPercentage * (target.scrollHeight - target.clientHeight);
+            
+            setTimeout(() => {
+                isUpdatingScroll = false;
+            }, 10);
+        }
+
+        // Editor input handler
+        editor.addEventListener('input', () => {
+            updatePreview();
+            markAsModified();
+        });
+
+        // Scroll sync handlers
+        editor.addEventListener('scroll', () => {
+            syncScroll(editor, preview);
+        });
+
+        preview.addEventListener('scroll', () => {
+            syncScroll(preview, editor);
+        });
+
+        // Theme change handler
+        themeSelect.addEventListener('change', () => {
+            const selectedTheme = themeSelect.value;
+            if (selectedTheme === 'custom') {
+                // Show custom theme modal
+                themeModal.style.display = 'block';
+                loadCustomThemeValues();
+            } else {
+                applyTheme(selectedTheme);
+                savePreferences();
+            }
+        });
+
+        // Load custom theme values into modal
+        function loadCustomThemeValues() {
+            const currentTheme = themes.custom || themes.dark;
+            const colorInputs = [
+                'bg-primary', 'bg-secondary', 'bg-tertiary', 'border-color',
+                'text-primary', 'accent-primary', 'heading-color', 'link-color',
+                'code-bg', 'code-text'
+            ];
+            
+            colorInputs.forEach(id => {
+                const colorInput = document.getElementById(`color-${id}`);
+                const textInput = document.getElementById(`text-${id}`);
+                const value = currentTheme[`--${id}`] || '#000000';
+                
+                if (colorInput && textInput) {
+                    colorInput.value = value;
+                    textInput.value = value;
+                    
+                    // Sync color and text inputs
+                    colorInput.addEventListener('input', (e) => {
+                        textInput.value = e.target.value;
+                    });
+                    
+                    textInput.addEventListener('input', (e) => {
+                        if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
+                            colorInput.value = e.target.value;
+                        }
+                    });
+                }
+            });
+        }
+
+        // Apply custom theme
+        applyThemeBtn.addEventListener('click', () => {
+            const customTheme = {
+                '--bg-primary': document.getElementById('text-bg-primary').value,
+                '--bg-secondary': document.getElementById('text-bg-secondary').value,
+                '--bg-tertiary': document.getElementById('text-bg-tertiary').value,
+                '--border-color': document.getElementById('text-border-color').value,
+                '--text-primary': document.getElementById('text-text-primary').value,
+                '--text-secondary': document.getElementById('text-text-primary').value,
+                '--text-tertiary': document.getElementById('text-border-color').value,
+                '--accent-primary': document.getElementById('text-accent-primary').value,
+                '--accent-hover': document.getElementById('text-accent-primary').value,
+                '--accent-active': document.getElementById('text-accent-primary').value,
+                '--heading-color': document.getElementById('text-heading-color').value,
+                '--link-color': document.getElementById('text-link-color').value,
+                '--code-bg': document.getElementById('text-code-bg').value,
+                '--code-text': document.getElementById('text-code-text').value,
+                '--scrollbar-bg': document.getElementById('text-bg-primary').value,
+                '--scrollbar-thumb': document.getElementById('text-border-color').value,
+                '--scrollbar-thumb-hover': document.getElementById('text-border-color').value,
+                '--scrollbar-thumb-active': document.getElementById('text-border-color').value,
+                'hljs-theme': 'default'
+            };
+            
+            themes.custom = customTheme;
+            applyTheme('custom');
+            savePreferences();
+            themeModal.style.display = 'none';
+        });
+
+        // Reset theme
+        resetThemeBtn.addEventListener('click', () => {
+            loadCustomThemeValues();
+        });
+
+        // Close modal
+        closeModalBtn.addEventListener('click', () => {
+            themeModal.style.display = 'none';
+            if (!themes.custom) {
+                themeSelect.value = 'dark';
+            }
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === themeModal) {
+                themeModal.style.display = 'none';
+                if (!themes.custom) {
+                    themeSelect.value = 'dark';
+                }
+            }
+        });
+
+        // Toggle panels
+        toggleEditorBtn.addEventListener('click', () => {
+            editorPanel.classList.toggle('hidden');
+            toggleEditorBtn.classList.toggle('active');
+            if (!previewPanel.classList.contains('hidden') && editorPanel.classList.contains('hidden')) {
+                previewPanel.style.flex = '1';
+            } else if (!editorPanel.classList.contains('hidden') && !previewPanel.classList.contains('hidden')) {
+                editorPanel.style.flex = '1';
+                previewPanel.style.flex = '1';
+            }
+        });
+
+        togglePreviewBtn.addEventListener('click', () => {
+            previewPanel.classList.toggle('hidden');
+            togglePreviewBtn.classList.toggle('active');
+            if (!editorPanel.classList.contains('hidden') && previewPanel.classList.contains('hidden')) {
+                editorPanel.style.flex = '1';
+            } else if (!editorPanel.classList.contains('hidden') && !previewPanel.classList.contains('hidden')) {
+                editorPanel.style.flex = '1';
+                previewPanel.style.flex = '1';
+            }
+        });
+
+        // Save functionality
+        async function saveFile() {
+            const result = await ipcRenderer.invoke('save-file', {
+                content: editor.value,
+                filePath: currentFilePath
+            });
+            
+            if (result) {
+                currentFilePath = result;
+                hasUnsavedChanges = false;
+                updateTitle();
+            }
+        }
+
+        async function saveAsFile() {
+            const result = await ipcRenderer.invoke('save-as-file', editor.value);
+            
+            if (result) {
+                currentFilePath = result;
+                hasUnsavedChanges = false;
+                updateTitle();
+            }
+        }
+
+        saveBtn.addEventListener('click', saveFile);
+
+        openBtn.addEventListener('click', () => {
+            ipcRenderer.send('open-file-dialog');
+        });
+
+        // IPC event handlers
+        ipcRenderer.on('file-opened', (event, { content, filePath }) => {
+            editor.value = content;
+            currentFilePath = filePath;
+            hasUnsavedChanges = false;
+            updatePreview();
+            updateTitle();
+        });
+
+        ipcRenderer.on('new-file', () => {
+            editor.value = '';
+            currentFilePath = null;
+            hasUnsavedChanges = false;
+            updatePreview();
+            updateTitle();
+        });
+
+        ipcRenderer.on('save-file', saveFile);
+        ipcRenderer.on('save-as-file', saveAsFile);
+
+        ipcRenderer.on('toggle-preview', () => {
+            togglePreviewBtn.click();
+        });
+
+        ipcRenderer.on('toggle-editor', () => {
+            toggleEditorBtn.click();
+        });
+
+        ipcRenderer.on('set-theme', (event, themeName) => {
+            themeSelect.value = themeName;
+            if (themeName === 'custom') {
+                themeModal.style.display = 'block';
+                loadCustomThemeValues();
+            } else {
+                applyTheme(themeName);
+                savePreferences();
+            }
+        });
+
+        ipcRenderer.on('toggle-sync-scroll', () => {
+            syncScrollCheckbox.checked = !syncScrollCheckbox.checked;
+            savePreferences();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 's':
+                        e.preventDefault();
+                        saveFile();
+                        break;
+                    case 'S':
+                        e.preventDefault();
+                        saveAsFile();
+                        break;
+                }
+            }
+        });
+
+        // Save preferences on change
+        syncScrollCheckbox.addEventListener('change', savePreferences);
+
+        // Initial setup
+        loadPreferences();
+        updatePreview();
+    </script>
+</body>
+</html>
