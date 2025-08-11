@@ -229,6 +229,20 @@ async function loadFile(filePath) {
 // IPC Handlers
 ipcMain.handle('get-current-file', () => currentFilePath);
 
+ipcMain.on('open-file-dialog', async (event) => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [
+      { name: 'Markdown Files', extensions: ['md', 'markdown'] },
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  });
+
+  if (!result.canceled && result.filePaths[0]) {
+    loadFile(result.filePaths[0]);
+  }
+});
+
 ipcMain.handle('save-file', async (event, { content, filePath }) => {
   try {
     const targetPath = filePath || currentFilePath;
