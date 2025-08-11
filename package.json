@@ -27,7 +27,7 @@
     "@codemirror/view": "^6.38.1",
     "codemirror": "^6.0.2",
     "highlight.js": "^11.9.0",
-    "marked": "^11.1.0"
+    "marked": "^11.2.0"
   },
   "build": {
     "appId": "com.ori.markdowneditor",

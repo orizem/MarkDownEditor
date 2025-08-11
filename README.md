@@ -8,7 +8,7 @@ A powerful, feature-rich Markdown editor built with Electron, featuring VS Code-
 - **CodeMirror 6 Integration**: VS Code-like editing experience with advanced features
 - **Multi-Selection**: Ctrl+D for selecting multiple occurrences (like VS Code)
 - **Line Operations**: Duplicate lines (Shift+Alt+Up/Down), move lines (Alt+Up/Down)
-- **Advanced Search**: Built-in search and replace functionality (Ctrl+F, Ctrl+H)
+- **Built-in Search**: Native CodeMirror search functionality (Ctrl+F)
 - **Auto-completion**: Intelligent code and text completion
 - **Syntax Highlighting**: Full syntax highlighting for code blocks
 - **Textarea Fallback**: Automatic fallback to textarea if CodeMirror fails to load
@@ -30,17 +30,39 @@ A powerful, feature-rich Markdown editor built with Electron, featuring VS Code-
 - **External JavaScript**: Separated JavaScript for better security and maintainability
 - **Optimized Performance**: Efficient rendering and memory management
 
-### 💾 File Management
+### 🗂️ Tab Management
+- **Multiple Tabs**: Open and work with multiple files simultaneously
+- **Tab Navigation**: Ctrl+Tab and Ctrl+Shift+Tab to switch between tabs
+- **Drag & Drop Tabs**: Reorder tabs by dragging them
+- **Smart Tab Titles**: Shows file names with unsaved change indicators
+- **Tab Context**: Each tab maintains its own content and state
+
+### 💾 File Management & Auto-save
 - **File Association**: Can be set as default handler for .md files
 - **Drag & Drop**: Open files by dragging them to the editor
-- **Auto-save Indication**: Visual feedback for unsaved changes
+- **Smart Auto-save**: Automatic saving 3 seconds after stopping typing
+- **Auto-save Status**: Visual indicators for save status (Ready/Saving/Saved/Error)
+- **Manual Save**: Traditional Ctrl+S and Save As functionality
 - **Multiple File Formats**: Support for .md and .markdown files
+
+### 📤 Export Features
+- **PDF Export**: Export your markdown as professionally styled PDF files
+- **HTML Export**: Generate clean, styled HTML from your markdown
+- **Styled Output**: Exports include proper formatting, code highlighting, and typography
+- **Smart File Naming**: Auto-suggests export names based on current file
 
 ## 🚀 Installation
 
 ### Prerequisites
 - Node.js (v16 or higher)
 - npm
+
+### Key Dependencies
+- **Electron**: Desktop app framework
+- **CodeMirror 6**: Advanced code editor
+- **Marked**: Markdown parsing and rendering
+- **Highlight.js**: Syntax highlighting for code blocks
+- **Various CodeMirror packages**: Language support, themes, features
 
 ### Setup
 1. Clone or download the project
@@ -76,24 +98,27 @@ npm run build-linux
 - **Ctrl/Cmd + S**: Save file
 - **Ctrl/Cmd + Shift + S**: Save as
 
+### Tab Management
+- **Ctrl/Cmd + T**: New tab
+- **Ctrl/Cmd + W**: Close current tab
+- **Ctrl + Tab**: Switch to next tab
+- **Ctrl + Shift + Tab**: Switch to previous tab
+
 ### View Controls
 - **Ctrl/Cmd + P**: Toggle preview panel
 - **Ctrl/Cmd + E**: Toggle editor panel
 - **Ctrl/Cmd + Shift + S**: Toggle sync scroll
-- **Ctrl/Cmd + L**: Toggle line numbers
 
 ### VS Code-like Editor Features
-- **Ctrl/Cmd + F**: Search
-- **Ctrl/Cmd + H**: Search and replace
+- **Ctrl/Cmd + F**: Search (native CodeMirror)
 - **Ctrl/Cmd + D**: Select next occurrence (multi-selection)
-- **Ctrl/Cmd + L**: Select current line
 - **Shift + Alt + Up/Down**: Duplicate line up/down
 - **Alt + Up/Down**: Move line up/down
 - **Ctrl/Cmd + Shift + K**: Delete current line
 - **Tab**: Indent with tab support
 
 ### Development
-- **F12**: Toggle developer tools
+- **F12**: Toggle developer tools ⚠️ (opens but may not close properly)
 - **Ctrl/Cmd + R**: Reload application
 
 ## 📁 Project Structure
@@ -153,10 +178,16 @@ markdown-editor/
 2. Select "Properties" → "Open With"
 3. Choose "Markdown Editor" as default
 
-### Preferences
-All preferences are automatically saved to:
-- **Windows**: `%USERPROFILE%\.markdown-editor-prefs.json`
-- **macOS/Linux**: `~/.markdown-editor-prefs.json`
+### Preferences & Auto-save
+All preferences and auto-save functionality:
+- **Preferences Location**:
+  - Windows: `%USERPROFILE%\.markdown-editor-prefs.json`
+  - macOS/Linux: `~/.markdown-editor-prefs.json`
+- **Auto-save Behavior**:
+  - Saves 3 seconds after you stop typing
+  - Maximum 30-second intervals for safety
+  - Only works on files that have been saved at least once
+  - Visual status indicators in the bottom bar
 
 ## 🛠️ Troubleshooting
 
@@ -180,6 +211,24 @@ All preferences are automatically saved to:
 - **Solution**: Check write permissions for preferences file
 - **Location**: See Preferences section above
 
+### Export Not Working
+- **Issue**: PDF or HTML export fails
+- **Solution**: Check file permissions for target directory
+- **Check**: Developer console for export-related errors
+- **Note**: Export requires write access to chosen save location
+
+### Auto-save Issues
+- **Issue**: Auto-save not working
+- **Solution**: Ensure file has been manually saved at least once
+- **Check**: Status bar shows "Auto-save: Ready" when enabled
+- **Note**: Auto-save only works on previously saved files
+
+### Tab Issues
+- **Issue**: Tabs not switching properly
+- **Solution**: Use Ctrl+Tab/Ctrl+Shift+Tab for navigation
+- **Check**: Multiple files should show as separate tabs
+- **Note**: Each tab maintains independent content and state
+
 ### Build Failures
 - **Clear Dependencies**: `rm -rf node_modules && npm install`
 - **Update Node.js**: Ensure Node.js v16+ is installed
@@ -189,19 +238,24 @@ All preferences are automatically saved to:
 
 ### Recent Additions
 - ✅ CodeMirror 6 integration with full VS Code features
+- ✅ **Multiple tabs support** with drag & drop and keyboard navigation
+- ✅ **Export to PDF/HTML** with professional styling
+- ✅ **Smart auto-save system** with visual status indicators
+- ✅ **Panel resizing** for outline and editor panels
+- ✅ **Custom frameless title bar** with integrated window controls
 - ✅ Content Security Policy implementation
-- ✅ External JavaScript separation for better security
 - ✅ Enhanced scroll synchronization
 - ✅ Comprehensive theme system with 8+ themes
 - ✅ Custom theme creator with live preview
 
 ### Planned Features
-- 📄 Export to PDF/HTML
-- 📑 Multiple tabs support
-- 🔌 Plugin system
-- 📊 Table editor
-- 🔍 Advanced find and replace with regex
+- 🔌 Plugin system architecture
+- 📊 Visual table editor
+- 🔍 Advanced find and replace with regex support
 - 📱 Responsive design improvements
+- 🎨 More built-in themes
+- 📋 Clipboard integration enhancements
+- 🔗 Link preview and validation
 
 ## 📄 License
 
