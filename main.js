@@ -9,6 +9,7 @@ function createWindow(filePath = null) {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    frame: false, // Remove the default window frame
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -25,7 +26,8 @@ function createWindow(filePath = null) {
     });
   }
 
-  createMenu();
+  // Don't create native menu - we'll integrate it into the custom title bar
+  Menu.setApplicationMenu(null);
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -226,6 +228,39 @@ async function loadFile(filePath) {
   }
 }
 
+// Window control IPC handlers
+ipcMain.on('window-minimize', () => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
+});
+
+ipcMain.on('window-maximize', () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  }
+});
+
+ipcMain.on('window-close', () => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
+});
+
+ipcMain.on('toggle-dev-tools', () => {
+  if (mainWindow) {
+    if (mainWindow.webContents.isDevToolsOpened()) {
+      mainWindow.webContents.closeDevTools();
+    } else {
+      mainWindow.webContents.openDevTools();
+    }
+  }
+});
+
 // IPC Handlers
 ipcMain.handle('get-current-file', () => currentFilePath);
 
@@ -240,6 +275,18 @@ ipcMain.on('open-file-dialog', async (event) => {
 
   if (!result.canceled && result.filePaths[0]) {
     loadFile(result.filePaths[0]);
+  }
+});
+
+ipcMain.handle('auto-save-file', async (event, { content, filePath }) => {
+  try {
+    if (!filePath) return null;
+    
+    await fs.writeFile(filePath, content, 'utf-8');
+    return filePath;
+  } catch (error) {
+    console.error('Auto-save error:', error);
+    return null;
   }
 });
 
@@ -294,6 +341,241 @@ ipcMain.handle('save-as-file', async (event, content) => {
   }
 });
 
+// Export handlers
+ipcMain.handle('export-pdf', async (event, { content, currentFilePath }) => {
+  try {
+    // Create a temporary HTML file with the markdown rendered
+    const marked = require('marked');
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Markdown Export</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h3 { font-size: 1.25em; }
+        code {
+            background: #f6f8fa;
+            border-radius: 3px;
+            font-size: 85%;
+            margin: 0;
+            padding: 0.2em 0.4em;
+        }
+        pre {
+            background: #f6f8fa;
+            border-radius: 6px;
+            font-size: 85%;
+            line-height: 1.45;
+            overflow: auto;
+            padding: 16px;
+        }
+        pre code {
+            background: transparent;
+            border: 0;
+            display: inline;
+            line-height: inherit;
+            margin: 0;
+            overflow: visible;
+            padding: 0;
+            word-wrap: normal;
+        }
+        blockquote {
+            border-left: 4px solid #dfe2e5;
+            color: #6a737d;
+            padding-left: 16px;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 16px 0;
+            width: 100%;
+        }
+        table th, table td {
+            border: 1px solid #dfe2e5;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        table th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+        @media print {
+            body { margin: 0; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+${marked.parse(content)}
+</body>
+</html>`;
+    
+    // Show save dialog for PDF
+    const result = await dialog.showSaveDialog({
+      filters: [
+        { name: 'PDF Files', extensions: ['pdf'] },
+      ],
+      defaultPath: currentFilePath ? 
+        currentFilePath.replace(/\.md$/, '.pdf') : 
+        'document.pdf',
+      defaultExtension: 'pdf'
+    });
+
+    if (result.canceled) return null;
+
+    // Create a new BrowserWindow to render the PDF
+    const pdfWindow = new BrowserWindow({
+      width: 800,
+      height: 600,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true
+      }
+    });
+
+    // Load the HTML content
+    await pdfWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(htmlContent));
+
+    // Generate PDF
+    const pdfData = await pdfWindow.webContents.printToPDF({
+      marginsType: 1, // default margins
+      printBackground: false,
+      printSelectionOnly: false,
+      landscape: false,
+      pageSize: 'A4'
+    });
+
+    // Save PDF file
+    await fs.writeFile(result.filePath, pdfData);
+
+    // Close the temporary window
+    pdfWindow.close();
+
+    return result.filePath;
+  } catch (error) {
+    console.error('PDF export error:', error);
+    dialog.showErrorBox('Export Error', `Failed to export PDF: ${error.message}`);
+    return null;
+  }
+});
+
+ipcMain.handle('export-html', async (event, { content, currentFilePath }) => {
+  try {
+    const marked = require('marked');
+    
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Markdown Export</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        h1 { font-size: 2em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h2 { font-size: 1.5em; border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
+        h3 { font-size: 1.25em; }
+        code {
+            background: #f6f8fa;
+            border-radius: 3px;
+            font-size: 85%;
+            margin: 0;
+            padding: 0.2em 0.4em;
+        }
+        pre {
+            background: #f6f8fa;
+            border-radius: 6px;
+            font-size: 85%;
+            line-height: 1.45;
+            overflow: auto;
+            padding: 16px;
+        }
+        pre code {
+            background: transparent;
+            border: 0;
+            display: inline;
+            line-height: inherit;
+            margin: 0;
+            overflow: visible;
+            padding: 0;
+            word-wrap: normal;
+        }
+        blockquote {
+            border-left: 4px solid #dfe2e5;
+            color: #6a737d;
+            padding-left: 16px;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 16px 0;
+            width: 100%;
+        }
+        table th, table td {
+            border: 1px solid #dfe2e5;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        table th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+${marked.parse(content)}
+</body>
+</html>`;
+
+    // Show save dialog for HTML
+    const result = await dialog.showSaveDialog({
+      filters: [
+        { name: 'HTML Files', extensions: ['html'] },
+      ],
+      defaultPath: currentFilePath ? 
+        currentFilePath.replace(/\.md$/, '.html') : 
+        'document.html',
+      defaultExtension: 'html'
+    });
+
+    if (result.canceled) return null;
+
+    // Save HTML file
+    await fs.writeFile(result.filePath, htmlContent, 'utf-8');
+
+    return result.filePath;
+  } catch (error) {
+    console.error('HTML export error:', error);
+    dialog.showErrorBox('Export Error', `Failed to export HTML: ${error.message}`);
+    return null;
+  }
+});
+
 // Handle file open on Windows/Linux
 app.on('ready', () => {
   // Check if app was opened with a file
@@ -319,6 +601,7 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
 
 app.on('activate', () => {
   if (mainWindow === null) {
