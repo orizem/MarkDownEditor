@@ -646,12 +646,46 @@
         overflow: hidden;
       }
 
+      .tab-scroll-wrapper {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      .tab-scroll-btn {
+        background: var(--bg-tertiary);
+        border: none;
+        color: var(--text-secondary);
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: background-color 0.2s, color 0.2s;
+        flex-shrink: 0;
+      }
+
+      .tab-scroll-btn:hover {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+      }
+
+      .tab-scroll-btn:disabled {
+        color: var(--text-tertiary);
+        cursor: default;
+        background: var(--bg-tertiary);
+      }
+
       .tab-container {
         display: flex;
         flex: 1;
         overflow-x: auto;
         scrollbar-width: none;
         -ms-overflow-style: none;
+        scroll-behavior: smooth;
       }
 
       .tab-container::-webkit-scrollbar {
@@ -1173,8 +1207,12 @@
 
     <!-- Tab Bar -->
     <div class="tab-bar" id="tabBar">
-      <div class="tab-container" id="tabContainer">
-        <!-- Tabs will be dynamically added here -->
+      <div class="tab-scroll-wrapper">
+        <button class="tab-scroll-btn" id="scrollLeftBtn" title="Scroll Left">‹</button>
+        <div class="tab-container" id="tabContainer">
+          <!-- Tabs will be dynamically added here -->
+        </div>
+        <button class="tab-scroll-btn" id="scrollRightBtn" title="Scroll Right">›</button>
       </div>
       <button class="new-tab-btn" id="newTabBtn" title="New Tab (Ctrl+T)">+</button>
     </div>

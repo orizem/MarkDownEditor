@@ -43,6 +43,8 @@ const searchResults = document.getElementById("searchResults");
 // Tab system elements
 const tabContainer = document.getElementById("tabContainer");
 const newTabBtn = document.getElementById("newTabBtn");
+const scrollLeftBtn = document.getElementById("scrollLeftBtn");
+const scrollRightBtn = document.getElementById("scrollRightBtn");
 
 // Window control elements
 const minimizeBtn = document.getElementById("minimizeBtn");
@@ -800,6 +802,77 @@ function closeTab(index) {
   }
 }
 
+// Tab scrolling functionality
+function updateScrollButtons() {
+  if (!scrollLeftBtn || !scrollRightBtn || !tabContainer) return;
+  
+  const canScrollLeft = tabContainer.scrollLeft > 0;
+  const canScrollRight = tabContainer.scrollLeft < (tabContainer.scrollWidth - tabContainer.clientWidth);
+  
+  scrollLeftBtn.disabled = !canScrollLeft;
+  scrollRightBtn.disabled = !canScrollRight;
+  
+  // Show/hide scroll buttons based on whether scrolling is needed
+  const needsScrolling = tabContainer.scrollWidth > tabContainer.clientWidth;
+  scrollLeftBtn.style.display = needsScrolling ? 'flex' : 'none';
+  scrollRightBtn.style.display = needsScrolling ? 'flex' : 'none';
+}
+
+function scrollTabsLeft() {
+  if (tabContainer) {
+    tabContainer.scrollBy({
+      left: -120,
+      behavior: 'smooth'
+    });
+  }
+}
+
+function scrollTabsRight() {
+  if (tabContainer) {
+    tabContainer.scrollBy({
+      left: 120,
+      behavior: 'smooth'
+    });
+  }
+}
+
+function scrollToActiveTab() {
+  if (!tabContainer || tabSystem.activeTabIndex === -1) return;
+  
+  const activeTab = tabContainer.children[tabSystem.activeTabIndex];
+  if (!activeTab) return;
+  
+  const containerWidth = tabContainer.clientWidth;
+  const containerScrollWidth = tabContainer.scrollWidth;
+  
+  // If all tabs fit in the container, no need to scroll
+  if (containerScrollWidth <= containerWidth) return;
+  
+  const tabLeft = activeTab.offsetLeft;
+  const tabWidth = activeTab.offsetWidth;
+  const tabRight = tabLeft + tabWidth;
+  
+  const scrollLeft = tabContainer.scrollLeft;
+  const scrollRight = scrollLeft + containerWidth;
+  
+  const padding = 20; // Space to leave around the focused tab
+  
+  // Check if tab is fully visible with some padding
+  if (tabLeft < scrollLeft + padding) {
+    // Tab is cut off on the left or too close to left edge, scroll left to show it
+    tabContainer.scrollTo({
+      left: Math.max(0, tabLeft - padding),
+      behavior: 'smooth'
+    });
+  } else if (tabRight > scrollRight - padding) {
+    // Tab is cut off on the right or too close to right edge, scroll right to show it  
+    tabContainer.scrollTo({
+      left: Math.min(containerScrollWidth - containerWidth, tabRight - containerWidth + padding),
+      behavior: 'smooth'
+    });
+  }
+}
+
 function renderTabs() {
   if (!tabContainer) return;
   
@@ -827,6 +900,14 @@ function renderTabs() {
         switchToTab(index);
       }
     });
+
+    // Tab middle-click handler to close tab
+    tabElement.addEventListener('mousedown', (e) => {
+      if (e.button === 1) { // Middle mouse button
+        e.preventDefault();
+        closeTab(index);
+      }
+    });
     
     // Tab close handler
     tabClose.addEventListener('click', (e) => {
@@ -846,6 +927,12 @@ function renderTabs() {
     tabElement.appendChild(tabClose);
     tabContainer.appendChild(tabElement);
   });
+  
+  // Update scroll buttons and focus on active tab after rendering tabs
+  setTimeout(() => {
+    updateScrollButtons();
+    scrollToActiveTab();
+  }, 0);
 }
 
 function updateTitle() {
@@ -1324,7 +1411,9 @@ document.addEventListener("keydown", (e) => {
     }
     return;
   }
+
   
+  // Handle Ctrl+Key shortcuts  
   if (e.ctrlKey || e.metaKey) {
     switch (e.key) {
       case "s":
@@ -1841,6 +1930,36 @@ if (closeBtn) {
 // Tab system event listeners
 if (newTabBtn) {
   newTabBtn.addEventListener("click", () => createNewTab());
+}
+
+// Tab scroll button event listeners
+if (scrollLeftBtn) {
+  scrollLeftBtn.addEventListener("click", scrollTabsLeft);
+}
+
+if (scrollRightBtn) {
+  scrollRightBtn.addEventListener("click", scrollTabsRight);
+}
+
+// Tab container scroll event listener
+if (tabContainer) {
+  tabContainer.addEventListener("scroll", updateScrollButtons);
+  
+  // Mouse wheel scrolling for tabs
+  tabContainer.addEventListener("wheel", (e) => {
+    if (e.deltaY !== 0) {
+      e.preventDefault();
+      tabContainer.scrollBy({
+        left: e.deltaY * 2,
+        behavior: 'smooth'
+      });
+    }
+  });
+  
+  // Window resize handler to update scroll buttons
+  window.addEventListener('resize', () => {
+    setTimeout(updateScrollButtons, 0);
+  });
 }
 
 // Initialize CodeMirror 6 with ALL VS Code features using CommonJS!
