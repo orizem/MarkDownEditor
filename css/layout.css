@@ -1,0 +1,176 @@
+.outline-panel {
+  width: 250px;
+  min-width: 200px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  position: relative;
+}
+
+.outline-panel.hidden {
+  display: none !important;
+}
+
+.editor-panel,
+.preview-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-panel {
+  border-right: 1px solid var(--border-color);
+  position: relative;
+}
+
+.outline-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.outline-item {
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: background-color 0.2s;
+}
+
+.outline-item:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.outline-item.active {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.outline-item.h1 {
+  font-weight: 600;
+  font-size: 14px;
+  margin-left: 0;
+}
+
+.outline-item.h2 {
+  margin-left: 15px;
+}
+
+.outline-item.h3 {
+  margin-left: 30px;
+}
+
+.outline-item.h4 {
+  margin-left: 45px;
+}
+
+.outline-item.h5 {
+  margin-left: 60px;
+}
+
+.outline-item.h6 {
+  margin-left: 75px;
+}
+
+.outline-toggle {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.outline-toggle:hover {
+  color: var(--text-primary);
+}
+
+.panel-header {
+  background: var(--bg-secondary);
+  padding: 8px 15px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.status-bar {
+  background: var(--accent-primary);
+  padding: 5px 15px;
+  font-size: 12px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-right {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.auto-save-status {
+  opacity: 0.8;
+  font-size: 11px;
+}
+
+.auto-save-status.saving {
+  opacity: 1;
+  font-weight: bold;
+}
+
+.auto-save-status.saved {
+  color: #90EE90;
+}
+
+.auto-save-status.error {
+  color: #FFB6C1;
+}
+
+/* Resize handles */
+.resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 10;
+  transition: background-color 0.2s;
+}
+
+.resize-handle:hover {
+  background: var(--accent-primary);
+  opacity: 0.8;
+}
+
+.resize-handle.resizing {
+  background: var(--accent-primary);
+  opacity: 0.7;
+}
+
+.outline-resize-handle {
+  right: -3px;
+}
+
+.editor-resize-handle {
+  right: -3px;
+}

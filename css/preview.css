@@ -1,0 +1,136 @@
+#preview {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background: var(--bg-primary);
+}
+
+/* Markdown Preview Styles */
+#preview {
+  color: var(--text-primary);
+}
+
+#preview h1,
+#preview h2,
+#preview h3,
+#preview h4,
+#preview h5,
+#preview h6 {
+  color: var(--heading-color);
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+#preview h1 {
+  font-size: 2em;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.3em;
+}
+
+#preview h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.3em;
+}
+
+#preview h3 {
+  font-size: 1.25em;
+}
+
+#preview h4 {
+  font-size: 1em;
+}
+
+#preview h5 {
+  font-size: 0.875em;
+}
+
+#preview h6 {
+  font-size: 0.85em;
+}
+
+#preview p {
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+#preview a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+#preview a:hover {
+  text-decoration: underline;
+}
+
+#preview code {
+  background: var(--code-bg);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-size: 0.9em;
+  color: var(--code-text);
+}
+
+#preview pre {
+  background: var(--code-bg);
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+#preview pre code {
+  background: none;
+  padding: 0;
+  color: var(--text-primary);
+}
+
+#preview blockquote {
+  border-left: 4px solid var(--border-color);
+  padding-left: 16px;
+  color: var(--text-tertiary);
+  margin-bottom: 16px;
+}
+
+#preview ul,
+#preview ol {
+  margin-bottom: 16px;
+  padding-left: 2em;
+}
+
+#preview li {
+  margin-bottom: 4px;
+}
+
+#preview table {
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+#preview table th,
+#preview table td {
+  border: 1px solid var(--border-color);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+#preview table th {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+}
+
+#preview img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+#preview hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 24px 0;
+}
