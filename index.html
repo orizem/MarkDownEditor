@@ -150,6 +150,22 @@
         margin: 4px 0;
       }
 
+      .submenu-parent {
+        position: relative;
+      }
+
+      .submenu {
+        position: absolute;
+        top: 0;
+        left: 100%;
+        margin-left: 4px;
+        display: none;
+      }
+
+      .submenu-parent:hover .submenu {
+        display: block;
+      }
+
       .title-bar-left span {
         font-size: 13px;
         color: var(--text-primary);
@@ -1063,6 +1079,16 @@
                 <div class="menu-option" data-action="save">Save (Ctrl+S)</div>
                 <div class="menu-option" data-action="save-as">Save As (Ctrl+Shift+S)</div>
                 <div class="menu-separator"></div>
+                <div class="menu-option submenu-parent" id="exportSubmenu">
+                  Export
+                  <span style="float: right;">›</span>
+                  <div class="dropdown-menu submenu" id="exportSubmenuDropdown">
+                    <div class="menu-option" data-action="export-md">Export as Markdown (.md)</div>
+                    <div class="menu-option" data-action="export-pdf">Export as PDF</div>
+                    <div class="menu-option" data-action="export-html">Export as HTML</div>
+                  </div>
+                </div>
+                <div class="menu-separator"></div>
                 <div class="menu-option" data-action="exit">Exit (Ctrl+Q)</div>
               </div>
             </div>
@@ -1117,19 +1143,6 @@
         <button id="togglePreview" class="active">Preview</button>
       </div>
 
-      <div class="toolbar-separator"></div>
-
-      <div class="toolbar-group">
-        <button id="saveBtn">Save (Ctrl+S)</button>
-        <button id="openBtn">Open (Ctrl+O)</button>
-      </div>
-
-      <div class="toolbar-separator"></div>
-
-      <div class="toolbar-group">
-        <button id="exportPdfBtn">Export PDF</button>
-        <button id="exportHtmlBtn">Export HTML</button>
-      </div>
 
       <div class="toolbar-separator"></div>
 

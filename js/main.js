@@ -18,10 +18,6 @@ const outline = document.getElementById("outline");
 const outlineToggle = document.getElementById("outlineToggle");
 const editorToggle = document.getElementById("editorToggle");
 const previewToggle = document.getElementById("previewToggle");
-const saveBtn = document.getElementById("saveBtn");
-const openBtn = document.getElementById("openBtn");
-const exportPdfBtn = document.getElementById("exportPdfBtn");
-const exportHtmlBtn = document.getElementById("exportHtmlBtn");
 const themeSelect = document.getElementById("themeSelect");
 const syncScrollCheckbox = document.getElementById("syncScroll");
 const autoSaveToggle = document.getElementById("autoSaveToggle");
@@ -1257,96 +1253,7 @@ async function saveAsFile() {
   }
 }
 
-saveBtn.addEventListener("click", saveFile);
 
-openBtn.addEventListener("click", () => {
-  ipcRenderer.send("open-file-dialog");
-});
-
-// Setup export functionality after DOM is loaded
-function setupExportButtons() {
-  console.log('Setting up export buttons...');
-  
-  const pdfBtn = document.getElementById('exportPdfBtn');
-  const htmlBtn = document.getElementById('exportHtmlBtn');
-  
-  console.log('Found buttons:', pdfBtn, htmlBtn);
-  
-  if (pdfBtn) {
-    pdfBtn.addEventListener("click", async () => {
-      console.log('PDF export button clicked!');
-      
-      if (!codeEditor) {
-        console.error('No codeEditor available');
-        return;
-      }
-      
-      try {
-        const activeTab = getCurrentTab();
-        const currentFilePath = activeTab ? activeTab.filePath : null;
-        
-        console.log('Exporting PDF...');
-        
-        const result = await ipcRenderer.invoke("export-pdf", {
-          content: codeEditor.getValue(),
-          currentFilePath: currentFilePath
-        });
-        
-        if (result) {
-          console.log('PDF exported successfully to:', result);
-        } else {
-          console.error('PDF export failed');
-        }
-      } catch (error) {
-        console.error('PDF export error:', error);
-      }
-    });
-    console.log('PDF button handler added');
-  } else {
-    console.error('PDF button not found!');
-  }
-
-  if (htmlBtn) {
-    htmlBtn.addEventListener("click", async () => {
-      console.log('HTML export button clicked!');
-      
-      if (!codeEditor) {
-        console.error('No codeEditor available');
-        return;
-      }
-      
-      try {
-        const activeTab = getCurrentTab();
-        const currentFilePath = activeTab ? activeTab.filePath : null;
-        
-        console.log('Exporting HTML...');
-        
-        const result = await ipcRenderer.invoke("export-html", {
-          content: codeEditor.getValue(),
-          currentFilePath: currentFilePath
-        });
-        
-        if (result) {
-          console.log('HTML exported successfully to:', result);
-        } else {
-          console.error('HTML export failed');
-        }
-      } catch (error) {
-        console.error('HTML export error:', error);
-      }
-    });
-    console.log('HTML button handler added');
-  } else {
-    console.error('HTML button not found!');
-  }
-}
-
-// Call setup when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', setupExportButtons);
-} else {
-  setupExportButtons();
-}
 
 // IPC event handlers
 ipcRenderer.on("file-opened", (event, { content, filePath }) => {
@@ -1448,7 +1355,7 @@ document.addEventListener("keydown", (e) => {
         break;
       case "o":
         e.preventDefault();
-        openBtn.click();
+        ipcRenderer.send("open-file-dialog");
         break;
       case "e":
         e.preventDefault();
@@ -1749,14 +1656,18 @@ const editDropdown = document.getElementById("editDropdown");
 const viewDropdown = document.getElementById("viewDropdown");
 
 // Menu dropdown handlers
-function showDropdown(menu, dropdown) {
-  // Hide all other dropdowns
+function toggleDropdown(menu, dropdown) {
+  const isCurrentlyVisible = dropdown.classList.contains('show');
+  
+  // Hide all dropdowns first
   document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
   document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
   
-  // Show the selected dropdown
-  dropdown.classList.add('show');
-  menu.classList.add('active');
+  // If the dropdown was not visible, show it
+  if (!isCurrentlyVisible) {
+    dropdown.classList.add('show');
+    menu.classList.add('active');
+  }
 }
 
 function hideAllDropdowns() {
@@ -1765,15 +1676,15 @@ function hideAllDropdowns() {
 }
 
 if (fileMenu && fileDropdown) {
-  fileMenu.addEventListener('click', () => showDropdown(fileMenu, fileDropdown));
+  fileMenu.addEventListener('click', () => toggleDropdown(fileMenu, fileDropdown));
 }
 
 if (editMenu && editDropdown) {
-  editMenu.addEventListener('click', () => showDropdown(editMenu, editDropdown));
+  editMenu.addEventListener('click', () => toggleDropdown(editMenu, editDropdown));
 }
 
 if (viewMenu && viewDropdown) {
-  viewMenu.addEventListener('click', () => showDropdown(viewMenu, viewDropdown));
+  viewMenu.addEventListener('click', () => toggleDropdown(viewMenu, viewDropdown));
 }
 
 // Click outside to close dropdowns
@@ -1806,6 +1717,15 @@ function handleMenuAction(action) {
     case 'save-as':
       saveAsFile();
       break;
+    case 'export-md':
+      exportMarkdown();
+      break;
+    case 'export-pdf':
+      exportPdf();
+      break;
+    case 'export-html':
+      exportHtml();
+      break;
     case 'exit':
       ipcRenderer.send("window-close");
       break;
@@ -1836,6 +1756,66 @@ function handleMenuAction(action) {
     case 'devtools':
       // This would need IPC to main process
       break;
+  }
+}
+
+// Export functions
+async function exportMarkdown() {
+  if (!codeEditor) return;
+  const activeTab = getCurrentTab();
+  if (!activeTab) return;
+  
+  const result = await ipcRenderer.invoke("save-as-file", codeEditor.getValue());
+  if (result) {
+    console.log('Markdown exported successfully to:', result);
+  }
+}
+
+async function exportPdf() {
+  if (!codeEditor) return;
+  
+  try {
+    const activeTab = getCurrentTab();
+    const currentFilePath = activeTab ? activeTab.filePath : null;
+    
+    console.log('Exporting PDF from menu...');
+    
+    const result = await ipcRenderer.invoke("export-pdf", {
+      content: codeEditor.getValue(),
+      currentFilePath: currentFilePath
+    });
+    
+    if (result) {
+      console.log('PDF exported successfully to:', result);
+    } else {
+      console.error('PDF export failed');
+    }
+  } catch (error) {
+    console.error('PDF export error:', error);
+  }
+}
+
+async function exportHtml() {
+  if (!codeEditor) return;
+  
+  try {
+    const activeTab = getCurrentTab();
+    const currentFilePath = activeTab ? activeTab.filePath : null;
+    
+    console.log('Exporting HTML from menu...');
+    
+    const result = await ipcRenderer.invoke("export-html", {
+      content: codeEditor.getValue(),
+      currentFilePath: currentFilePath
+    });
+    
+    if (result) {
+      console.log('HTML exported successfully to:', result);
+    } else {
+      console.error('HTML export failed');
+    }
+  } catch (error) {
+    console.error('HTML export error:', error);
   }
 }
 
