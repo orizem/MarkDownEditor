@@ -1,0 +1,68 @@
+.toolbar {
+  background: var(--bg-tertiary);
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+  margin: 0 5px;
+}
+
+.toolbar button {
+  padding: 6px 12px;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.toolbar button:hover {
+  background: var(--accent-hover);
+}
+
+.toolbar button.active {
+  background: var(--accent-active);
+}
+
+.toolbar select {
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  outline: none;
+}
+
+.toolbar select:hover {
+  background: var(--bg-tertiary);
+}
+
+.toolbar label {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.toolbar input[type="checkbox"] {
+  cursor: pointer;
+}

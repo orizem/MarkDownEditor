@@ -1,0 +1,21 @@
+/* Base styles - will be overridden by themes */
+:root {
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-tertiary: #2d2d30;
+  --border-color: #3e3e42;
+  --text-primary: #d4d4d4;
+  --text-secondary: #cccccc;
+  --text-tertiary: #858585;
+  --accent-primary: #007acc;
+  --accent-hover: #1177bb;
+  --accent-active: #0e639c;
+  --heading-color: #569cd6;
+  --link-color: #3794ff;
+  --code-bg: #2d2d30;
+  --code-text: #ce9178;
+  --scrollbar-bg: #1e1e1e;
+  --scrollbar-thumb: #424242;
+  --scrollbar-thumb-hover: #4f4f4f;
+  --scrollbar-thumb-active: #5a5a5a;
+}
