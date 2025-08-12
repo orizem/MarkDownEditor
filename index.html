@@ -156,14 +156,31 @@
 
       .submenu {
         position: absolute;
-        top: 0;
-        left: 100%;
-        margin-left: 4px;
+        top: -4px;
+        left: calc(100% - 2px);
         display: none;
+        z-index: 1001;
+        padding-left: 6px;
       }
 
-      .submenu-parent:hover .submenu {
+      .submenu-parent:hover .submenu,
+      .submenu:hover {
         display: block;
+      }
+
+      .submenu-parent.submenu-open .submenu {
+        display: block;
+      }
+
+      .submenu-arrow {
+        float: right;
+        font-size: 14px;
+        color: var(--text-tertiary);
+        transition: color 0.2s;
+      }
+
+      .submenu-parent:hover .submenu-arrow {
+        color: var(--text-primary);
       }
 
       .title-bar-left span {
@@ -1115,7 +1132,7 @@
                 <div class="menu-separator"></div>
                 <div class="menu-option submenu-parent" id="exportSubmenu">
                   Export
-                  <span style="float: right;">›</span>
+                  <span class="submenu-arrow">›</span>
                   <div class="dropdown-menu submenu" id="exportSubmenuDropdown">
                     <div class="menu-option" data-action="export-md">Export as Markdown (.md)</div>
                     <div class="menu-option" data-action="export-pdf">Export as PDF</div>

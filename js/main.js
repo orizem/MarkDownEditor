@@ -1749,6 +1749,8 @@ const viewMenu = document.getElementById("viewMenu");
 const fileDropdown = document.getElementById("fileDropdown");
 const editDropdown = document.getElementById("editDropdown");
 const viewDropdown = document.getElementById("viewDropdown");
+const exportSubmenu = document.getElementById("exportSubmenu");
+const exportSubmenuDropdown = document.getElementById("exportSubmenuDropdown");
 
 // Menu dropdown handlers
 function toggleDropdown(menu, dropdown) {
@@ -1768,6 +1770,32 @@ function toggleDropdown(menu, dropdown) {
 function hideAllDropdowns() {
   document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
   document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  // Also hide submenus
+  document.querySelectorAll('.submenu-parent').forEach(p => p.classList.remove('submenu-open'));
+}
+
+// Submenu handling with timeout for better UX
+let submenuTimeout = null;
+
+function showSubmenu(submenuParent) {
+  if (submenuTimeout) {
+    clearTimeout(submenuTimeout);
+    submenuTimeout = null;
+  }
+  submenuParent.classList.add('submenu-open');
+}
+
+function hideSubmenu(submenuParent) {
+  submenuTimeout = setTimeout(() => {
+    submenuParent.classList.remove('submenu-open');
+  }, 300); // 300ms delay before hiding
+}
+
+function cancelSubmenuHide() {
+  if (submenuTimeout) {
+    clearTimeout(submenuTimeout);
+    submenuTimeout = null;
+  }
 }
 
 if (fileMenu && fileDropdown) {
@@ -1780,6 +1808,25 @@ if (editMenu && editDropdown) {
 
 if (viewMenu && viewDropdown) {
   viewMenu.addEventListener('click', () => toggleDropdown(viewMenu, viewDropdown));
+}
+
+// Export submenu event listeners
+if (exportSubmenu && exportSubmenuDropdown) {
+  exportSubmenu.addEventListener('mouseenter', () => {
+    showSubmenu(exportSubmenu);
+  });
+  
+  exportSubmenu.addEventListener('mouseleave', () => {
+    hideSubmenu(exportSubmenu);
+  });
+  
+  exportSubmenuDropdown.addEventListener('mouseenter', () => {
+    cancelSubmenuHide();
+  });
+  
+  exportSubmenuDropdown.addEventListener('mouseleave', () => {
+    hideSubmenu(exportSubmenu);
+  });
 }
 
 // Click outside to close dropdowns
