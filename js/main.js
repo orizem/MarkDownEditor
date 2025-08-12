@@ -745,7 +745,6 @@ function switchToTab(index) {
   // Update UI
   if (codeEditor) {
     codeEditor.setValue(newActiveTab.content);
-    codeEditor.clearHistory(); // Clear undo history when switching tabs
   }
   
   // Update status
@@ -963,6 +962,7 @@ function markCurrentTabAsModified() {
     updateTitle();
     renderTabs();
   }
+  
   // Schedule auto-save when content changes
   scheduleAutoSave();
 }
@@ -1446,6 +1446,12 @@ document.addEventListener("keydown", (e) => {
         e.preventDefault();
         ipcRenderer.send("open-file-dialog");
         break;
+      case "q":
+        e.preventDefault();
+        if (toggleOutlineBtn) {
+          toggleOutlineBtn.click();
+        }
+        break;
       case "e":
         e.preventDefault();
         if (toggleEditorBtn) {
@@ -1818,12 +1824,6 @@ function handleMenuAction(action) {
     case 'exit':
       ipcRenderer.send("window-close");
       break;
-    case 'undo':
-      document.execCommand('undo');
-      break;
-    case 'redo':
-      document.execCommand('redo');
-      break;
     case 'cut':
       document.execCommand('cut');
       break;
@@ -1833,11 +1833,14 @@ function handleMenuAction(action) {
     case 'paste':
       document.execCommand('paste');
       break;
-    case 'toggle-preview':
-      togglePreviewBtn.click();
+    case 'toggle-outline':
+      toggleOutlineBtn.click();
       break;
     case 'toggle-editor':
       toggleEditorBtn.click();
+      break;
+    case 'toggle-preview':
+      togglePreviewBtn.click();
       break;
     case 'reload':
       location.reload();
@@ -1847,6 +1850,7 @@ function handleMenuAction(action) {
       break;
   }
 }
+
 
 // Export functions
 async function exportMarkdown() {
@@ -1978,8 +1982,6 @@ function initializeCodeEditor() {
     } = require('@codemirror/search');
     const { 
       defaultKeymap, 
-      history, 
-      historyKeymap,
       indentWithTab,
       selectLine,
       copyLineUp,
@@ -1996,14 +1998,12 @@ function initializeCodeEditor() {
       basicSetup,
       markdown(),
       oneDark,
-      history(),
       search({ top: true }),
       highlightSelectionMatches(),
       autocompletion(),
       keymap.of([
         ...defaultKeymap,
         ...searchKeymap,
-        ...historyKeymap,
         ...completionKeymap,
         indentWithTab,
         // VS Code shortcuts
@@ -2083,16 +2083,8 @@ console.log('Hello, advanced Markdown editor!');
         }
       });
     };
-    codeEditor.clearHistory = () => {
-      // Clear history by recreating the state
-      const newState = EditorState.create({
-        doc: codeEditor.state.doc.toString(),
-        extensions: extensions
-      });
-      codeEditor.setState(newState);
-    };
 
-    console.log('CodeMirror 6 Editor with ALL VS Code features initialized successfully!');
+    console.log('CodeMirror 6 Editor with VS Code features initialized successfully!');
     console.log('Available shortcuts:');
     console.log('- Ctrl+F: Search');
     console.log('- Ctrl+H: Search & Replace'); 
@@ -2168,8 +2160,7 @@ console.log('Hello, Markdown!');
     // Add textarea functionality
     codeEditor = {
       getValue: () => textarea.value,
-      setValue: (value) => { textarea.value = value; },
-      clearHistory: () => {} // No history in textarea
+      setValue: (value) => { textarea.value = value; }
     };
     
     textarea.addEventListener('input', () => {

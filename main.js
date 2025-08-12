@@ -91,9 +91,6 @@ function createMenu() {
     {
       label: 'Edit',
       submenu: [
-        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', role: 'undo' },
-        { label: 'Redo', accelerator: 'CmdOrCtrl+Y', role: 'redo' },
-        { type: 'separator' },
         { label: 'Cut', accelerator: 'CmdOrCtrl+X', role: 'cut' },
         { label: 'Copy', accelerator: 'CmdOrCtrl+C', role: 'copy' },
         { label: 'Paste', accelerator: 'CmdOrCtrl+V', role: 'paste' }
@@ -103,10 +100,10 @@ function createMenu() {
       label: 'View',
       submenu: [
         {
-          label: 'Toggle Preview',
-          accelerator: 'CmdOrCtrl+P',
+          label: 'Toggle Outline',
+          accelerator: 'CmdOrCtrl+Q',
           click: () => {
-            mainWindow.webContents.send('toggle-preview');
+            mainWindow.webContents.send('toggle-outline');
           }
         },
         {
@@ -114,6 +111,13 @@ function createMenu() {
           accelerator: 'CmdOrCtrl+E',
           click: () => {
             mainWindow.webContents.send('toggle-editor');
+          }
+        },
+        {
+          label: 'Toggle Preview',
+          accelerator: 'CmdOrCtrl+P',
+          click: () => {
+            mainWindow.webContents.send('toggle-preview');
           }
         },
         { type: 'separator' },
